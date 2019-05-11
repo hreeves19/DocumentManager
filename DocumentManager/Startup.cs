@@ -13,6 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using DocumentManager.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using DocumentManager.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace DocumentManager
 {
@@ -39,10 +42,25 @@ namespace DocumentManager
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
             services.AddDefaultIdentity<IdentityUser>()
+                .AddRoles<IdentityRole>()
                 .AddDefaultUI(UIFramework.Bootstrap4)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            //services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.AddMvc(config =>
+            {
+                // using Microsoft.AspNetCore.Mvc.Authorization;
+                // using Microsoft.AspNetCore.Authorization;
+                var policy = new AuthorizationPolicyBuilder()
+                                 .RequireAuthenticatedUser()
+                                 .Build();
+                config.Filters.Add(new AuthorizeFilter(policy));
+            })
+       .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.AddDbContext<DocumentManagerContext>(options =>
+                    options.UseSqlServer(Configuration.GetConnectionString("DocumentManagerContext")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
